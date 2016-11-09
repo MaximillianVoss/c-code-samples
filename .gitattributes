@@ -1,0 +1,3 @@
+legacy/** -text
+preservation/file-metadata.csv text eol=lf
+preservation/original-tree.txt text eol=lf
