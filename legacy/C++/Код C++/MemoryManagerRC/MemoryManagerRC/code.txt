@@ -1,0 +1,93 @@
+#include "memallocator.h"
+#include <stdio.h>
+#include <stdlib.h>
+struct Item
+{
+	struct Item *next;
+	int size;
+};
+struct Item*header;
+struct Item*end;
+int initsize;
+int meminit(void *p, int size)
+{
+	((struct Item*)p)->next = NULL;
+	((struct Item*)p)->size = size - memgetminimumsize();
+	header = p;
+	initsize = size;
+	end = ((struct Item*)((char*)(header + 1) + size));
+}
+
+void memdone()
+{
+	if (initsize-memgetminimumsize() != header->size)
+		printf("memory leak!");
+	else
+		printf("no memory leak");
+}
+
+struct Item* getNewItem(struct Item*current, int size)
+{
+	//return ((struct Item*)((char*)(current + 1) + current->size));
+	struct Item* result = ((struct Item*)((char*)(current + 1) + current->size));
+	if (result <= end)
+		return result;
+	else
+		return NULL;
+}
+
+void *memalloc(int size)
+{
+	struct Item*current = header;
+	if (!header)return NULL;
+	while (current->size < size && current->size>0)
+		current = current->next;
+	if (current->size > size)
+	{
+		struct Item*prev = current->next, *_new = getNewItem(current, size);
+		if (_new != NULL)
+		{
+			current->size -= size + memgetminimumsize();
+			current->next = _new;
+			_new->size = -size;
+			_new->next = prev;
+		}
+	}
+	else
+		return NULL;
+}
+
+void memfree(void *p)
+{
+	struct Item*current = header, *prev = NULL;
+	if (!header)return;
+	while (current->next != (struct Item*)p)
+		current = current->next;
+	if (current != NULL)
+	{
+		prev = current;
+		current = (struct Item*)p;
+		current->size = -current->size;
+		current = header;
+		while (current != NULL)
+		{
+			if (current->next != NULL && current->size > 0 && current->next->size > 0)
+			{
+				current->size += current->next->size + memgetminimumsize();
+				current->next = current->next->next;
+			}
+			else
+				current = current->next;
+		}
+	}
+}
+
+int memgetminimumsize()
+{
+	return sizeof(struct  Item);
+}
+
+int memgetblocksize()
+{
+	return sizeof(struct  Item);
+}
