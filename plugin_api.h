@@ -3,7 +3,7 @@
 
 #include <getopt.h>
 #include <stddef.h>
-#define LAB1DEBUG false
+//#define LAB1DEBUG true
 /*
     Структура, описывающая опцию, поддерживаемую плагином.
 */

@@ -11,7 +11,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
-
+// bool DEBUG;
 #pragma region Массив поддерживаемых опций
 static struct plugin_option g_po_arr[] = {
     /*
@@ -39,17 +39,21 @@ static struct plugin_option g_po_arr[] = {
 #pragma region Методы
 
 #pragma region Проверки
+char *IsDebugMode()
+{
+    return getenv("LAB1DEBUG");
+}
 bool IsStrDec(const char *str)
 {
     if (str == NULL)
         return false;
-    char *alphabet = "1234567890";
+    const char *alphabet = "1234567890";
     for (size_t i = 0; i < strlen(str); i++)
     {
         char *strPointer = strchr(alphabet, str[i]);
         if (strPointer == NULL)
         {
-            free(strPointer);
+            // free(strPointer);
             return false;
         }
     }
@@ -59,7 +63,7 @@ bool IsStrBin(const char *str)
 {
     if (str == NULL)
         return false;
-    char *alphabet = "01";
+    const char *alphabet = "01";
     if (strlen(str) < 2)
         return false;
     if (str[0] != '0' || str[1] != 'b')
@@ -69,7 +73,7 @@ bool IsStrBin(const char *str)
         char *strPointer = strchr(alphabet, str[i]);
         if (strPointer == NULL)
         {
-            free(strPointer);
+            // free(strPointer);
             return false;
         }
     }
@@ -79,7 +83,7 @@ bool IsStrHex(const char *str)
 {
     if (str == NULL)
         return false;
-    char *alphabet = "0123456789abcdefABCDEF";
+    const char *alphabet = "0123456789abcdefABCDEF";
     if (strlen(str) < 2)
         return false;
     if (str[0] != '0' || str[1] != 'x')
@@ -89,7 +93,7 @@ bool IsStrHex(const char *str)
         char *strPointer = strchr(alphabet, str[i]);
         if (strPointer == NULL)
         {
-            free(strPointer);
+            // free(strPointer);
             return false;
         }
     }
@@ -116,10 +120,9 @@ int HexStrToDec(const char *str)
 #pragma endregion
 
 #pragma region Поиск файлов с указанным байтом
-int GetMostByteFromFile(char *path)
+int GetMostByteFromFile(const char *path)
 {
-    char *fileBytes = NULL;
-    long fileBytesCount = 0;
+
 #pragma region Считывание байтов файла
     FILE *file = fopen(path, "rb");
     if (file == NULL)
@@ -127,10 +130,16 @@ int GetMostByteFromFile(char *path)
         perror("Cannot open file!");
         return -1;
     }
-    fseek(file, 0, SEEK_END);
-    fileBytesCount = ftell(file);
+    if (fseek(file, 0, SEEK_END) < 0)
+    {
+        perror("Fseek problem!");
+        return -1;
+    }
+    long fileBytesCount = ftell(file);
     rewind(file);
-    fileBytes = (char *)malloc(fileBytesCount * sizeof(char));
+    if (IsDebugMode())
+        printf("Количество байт в файле:%li\n", fileBytesCount);
+    char *fileBytes = (char *)malloc(fileBytesCount * sizeof(char));
     size_t resultFread = fread(fileBytes, 1, fileBytesCount, file);
     if ((long)resultFread != fileBytesCount)
     {
@@ -147,7 +156,13 @@ int GetMostByteFromFile(char *path)
     for (int i = 0; i < differentBytesCount; i++)
         bytesFrequency[i] = 0;
     for (int i = 0; i < fileBytesCount; i++)
-        bytesFrequency[(int)fileBytes[i]]++;
+    {
+        unsigned char byte = fileBytes[i];
+        bytesFrequency[(size_t)byte]++;
+    }
+    // if (IsDebugMode())
+    //     for (int i = 0; i < differentBytesCount; i++)
+    //         printf("\n file bytesFrequency[%i]=%i\n", i, bytesFrequency[i]);
     int max = 0;
     int maxIndex = 0;
     for (int i = 0; i < differentBytesCount; i++)
@@ -157,8 +172,12 @@ int GetMostByteFromFile(char *path)
             maxIndex = i;
         }
 #pragma endregion
-    free(bytesFrequency);
-    free(fileBytes);
+
+    if (bytesFrequency)
+        free(bytesFrequency);
+
+    if (fileBytes)
+        free(fileBytes);
     return maxIndex;
 }
 struct StringList GetFilesWithIndent(const char *folderPath, int byteValue, int indent)
@@ -168,7 +187,7 @@ struct StringList GetFilesWithIndent(const char *folderPath, int byteValue, int 
     struct StringList list = InitStringList();
     if (!(dir = opendir(folderPath)))
     {
-        if (LAB1DEBUG)
+        if (IsDebugMode())
             perror("Не удалось найти папку!");
         return list;
     }
@@ -180,7 +199,7 @@ struct StringList GetFilesWithIndent(const char *folderPath, int byteValue, int 
             if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
                 continue;
             snprintf(path, sizeof(path), "%s/%s", folderPath, entry->d_name);
-            if (LAB1DEBUG == true)
+            if (IsDebugMode())
                 printf("%*s[%s]\n", indent, "", entry->d_name);
             struct StringList subFolderList = GetFilesWithIndent(path, byteValue, indent + 2);
             for (int i = 0; i < subFolderList.count; i++)
@@ -189,16 +208,19 @@ struct StringList GetFilesWithIndent(const char *folderPath, int byteValue, int 
         }
         else
         {
-            if (LAB1DEBUG == true)
+            if (IsDebugMode())
                 printf("%*s- %s\n", indent, "", entry->d_name);
             char path[1024];
             snprintf(path, sizeof(path), "%s/%s", folderPath, entry->d_name);
+            if (IsDebugMode())
+                printf("most byte in file:%i", GetMostByteFromFile(path));
             if (GetMostByteFromFile(path) == byteValue)
                 AddToStringList(&list, entry->d_name);
         }
     }
     closedir(dir);
-    free(entry);
+    if (entry)
+        free(entry);
     return list;
 }
 struct StringList GetFiles(const char *folderPath, int byteValue)
@@ -223,15 +245,15 @@ int plugin_get_info(struct plugin_info *ppi)
     return 0;
 }
 
-int plugin_process_file(const char *fname,
-                        struct option in_opts[],
-                        size_t in_opts_len)
+int plugin_process_file(const char *fname, struct option in_opts[], size_t in_opts_len)
 {
+
+    // DEBUG = (strcmp(getenv("LAB1DEBUG"), "true"));
     if (in_opts_len != 1)
         return -1;
     else
     {
-        if (LAB1DEBUG)
+        if (IsDebugMode())
         {
             printf("Имя файла/папки:%s\n", fname);
             printf("Переданные пагину 'libkakN3250' параметры:\n");
@@ -240,8 +262,9 @@ int plugin_process_file(const char *fname,
         }
         if (strcmp(in_opts[0].name, "freq-byte") == 0)
         {
-            if (LAB1DEBUG == true)
+            if (IsDebugMode())
                 printf("Началась обработка файлов по указанному пути!\n");
+#pragma region Проверка значения искомого байта
             bool isConverted = false;
             char *byteValueStr = (char *)in_opts[0].flag;
             int byteValue = -1;
@@ -265,12 +288,38 @@ int plugin_process_file(const char *fname,
                 printf("Указан некорректный параметр для байта!");
                 return -1;
             }
-            if (LAB1DEBUG == true)
+            if (IsDebugMode())
                 printf("Десятичное значение искомого байта:%i\n", byteValue);
-            struct StringList filesList = GetFiles(fname, byteValue);
-            // printf("Были найдены следующие файлы:\n");
-            PrintStringList(filesList);
-            DeleteStringList(&filesList);
+#pragma endregion
+
+#pragma region Поиск файлов в папке
+                // struct StringList filesList = GetFiles(fname, byteValue);
+                // if (DEBUG == true)
+                //     printf("Были найдены следующие файлы:\n");
+                // PrintStringList(filesList);
+                // if (DEBUG == true)
+                //     printf("Конец списка\n");
+                // DeleteStringList(&filesList);
+#pragma endregion
+
+#pragma region Проверка одного конкретного файла
+            if (byteValue > 255)
+                return 0;
+            int topByteValue = GetMostByteFromFile(fname);
+            if (IsDebugMode())
+                printf("Самый частый байт в указанном файле:%i (десятичное значение)\n", topByteValue);
+            if (topByteValue == byteValue)
+            {
+                // printf("\n RETURN 1\n");
+                return 1;
+            }
+            else
+                return 0;
+                // if (topByteValue != byteValue)
+                //     fname = "";
+                // else
+                //     printf("Файл '%s' удовлетворяет условию! В нем байт со значением %i самый частый.\n", fname, topByteValue);
+#pragma endregion
         }
         else
             return -1;

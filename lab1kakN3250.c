@@ -112,6 +112,7 @@ int ProcessFiles(const char *fpath, const struct stat *sb, int typeflag, struct 
 #pragma region Обработка файлов
     for (int i = 0; i < in_handles_len; ++i)
     {
+
         void *func = dlsym(in_handles[i], "plugin_process_file");
         if (!func)
         {
@@ -120,8 +121,23 @@ int ProcessFiles(const char *fpath, const struct stat *sb, int typeflag, struct 
         }
         typedef int (*ppf_func_t)(const char *, struct option *, size_t);
         ppf_func_t ppf_func = (ppf_func_t)func;
-        plugin_results[i] = ppf_func(fpath, plugin_in_opts[i], plugin_in_opts_len[i]);
+        // printf("\nTEST\n");
+        // printf("in_handles_len:%i\n", in_handles_len);
+        // printf("i:%i\n", i);
+        // TODO: проверить параметры, ошибка похоже тут, после этой строчки падает
+        // TODO: провнрить плагин на сегментацию и утечки
+        // printf("number_of_options:%i\n", number_of_options);
+        // printf("in_opts_len:%i\n", in_opts_len);
+        // printf("\nTEST\n");
+        // int b = plugin_in_opts_len[i];
+        // printf("plugin_in_opts_len");
+        // struct option *a = plugin_in_opts[i];
+        // printf("plugin_in_opts");
 
+        // struct option *opt = plugin_in_opts[i];
+        // int *length = plugin_in_opts_len[i];
+        // printf("\nTEST\n");
+        plugin_results[i] = ppf_func(fpath, plugin_in_opts[i], plugin_in_opts_len[i]);
         if (IsDebugMode())
             fprintf(stderr, "ProcessFiles: plugin_process_file() вернула: %d\n", plugin_results[i]);
         if (errno == EINVAL || (errno == EINVAL && IsDebugMode()))
@@ -131,25 +147,48 @@ int ProcessFiles(const char *fpath, const struct stat *sb, int typeflag, struct 
         }
     }
 #pragma endregion
-#pragma region
-#pragma endregion Обработка флагов
+#pragma region Обработка флагов
+    // -P dir Каталог с плагинами.
+    // - A Объединение опций плагинов с помощью операции «И» (действует по умолчанию).
+    // - O Объединение опций плагинов с помощью операции «ИЛИ».
+    // - N Инвертирование условия поиска(после объединения опций плагинов с помощью - A или - O).
+    // - v Вывод версии программы и информации о программе(ФИО исполнителя, номер группы, номер варианта лабораторной).
+    // - h Вывод справки по опциям
+    if (IsDebugMode())
+    {
+        printf("Plugin results:\n");
+        for (int i = 0; i < in_handles_len; ++i)
+            printf("plugin_results[%i]=%i\n", i, plugin_results[i]);
+    }
     if (flagAO == 'A')
     {
+        if (IsDebugMode())
+            printf("A flag\n");
+
         ret = 1;
         for (int i = 0; i < in_handles_len; ++i)
-            ret = ret && !(plugin_results[i]);
+            ret = ret && (plugin_results[i]);
     }
     else
     {
+        if (IsDebugMode())
+            printf("Not A flag\n");
         ret = 0;
         for (int i = 0; i < in_handles_len; ++i)
             ret = ret || !(plugin_results[i]);
     }
     if (flagN)
     {
+        if (IsDebugMode())
+            printf("N flag\n");
         ret = !ret;
     }
+#pragma endregion
 #pragma region Вывод и выделение найденых файлов
+    // printf("ret:%i\n", ret);
+    if (IsDebugMode())
+        printf("ret:%i\n", ret);
+
     if (ret)
     {
         //окрашивание в фиолетовый всех найденных файлов
@@ -539,4 +578,5 @@ END:
 
     return 0;
 }
+
 #pragma endregion
