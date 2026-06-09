@@ -29,14 +29,21 @@ try {
         throw "Build failed with exit code $LASTEXITCODE."
     }
 
-    $exe = Join-Path $root "build\$Platform\$Configuration\bin\Code samples C.exe"
-    if (-not (Test-Path -LiteralPath $exe)) {
-        throw "Executable not found: $exe"
-    }
+    $executables = @(
+        "Code samples C.exe",
+        "Code samples C.Tests.exe"
+    )
 
-    & $exe
-    if ($LASTEXITCODE -ne 0) {
-        throw "Executable failed with exit code $LASTEXITCODE."
+    foreach ($executable in $executables) {
+        $exe = Join-Path $root "build\$Platform\$Configuration\bin\$executable"
+        if (-not (Test-Path -LiteralPath $exe)) {
+            throw "Executable not found: $exe"
+        }
+
+        & $exe
+        if ($LASTEXITCODE -ne 0) {
+            throw "$executable failed with exit code $LASTEXITCODE."
+        }
     }
 }
 finally {

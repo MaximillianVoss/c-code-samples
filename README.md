@@ -20,9 +20,9 @@ C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\amd64\
 .\scripts\test.ps1
 ```
 
-Скрипт находит latest Visual Studio через `vswhere`, собирает решение в конфигурации `Debug|x64` и запускает получившийся exe с демонстрационными self-checks.
+Скрипт находит latest Visual Studio через `vswhere`, собирает решение в конфигурации `Debug|x64`, запускает демонстрационный exe и отдельный unit-test runner.
 
-The script resolves the latest Visual Studio through `vswhere`, builds `Debug|x64`, and runs the produced executable with demo self-checks.
+The script resolves the latest Visual Studio through `vswhere`, builds `Debug|x64`, and runs both the demo executable and the dedicated unit-test runner.
 
 ## Состав / Contents
 
@@ -31,6 +31,7 @@ The script resolves the latest Visual Studio through `vswhere`, builds `Debug|x6
 - `Converter.h`: простые heap-строки из числовых значений.
 - `FileIO.h`: примеры текстового и бинарного ввода-вывода на локальных файлах.
 - `Code samples C.c`: демонстрационная точка входа и простые self-checks.
+- `Code samples C.Tests`: отдельный console runner с unit-тестами для helper-заголовков.
 
 ## GitHub
 
