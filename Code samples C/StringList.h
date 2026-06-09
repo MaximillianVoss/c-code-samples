@@ -1,5 +1,6 @@
 #pragma once
 #include "String.h"
+
 #pragma region Type StringList
 
 typedef struct
@@ -18,103 +19,114 @@ StringList StringListInit()
 
 void StringListDelete(StringList* list)
 {
-	for (int i = 0; i < list->length; i++)
+	if (list == NULL)
+	{
+		return;
+	}
+
+	for (size_t i = 0; i < list->length; i++)
 	{
 		StringDelete(list->items[i]);
 	}
 	free(list->items);
+	list->items = NULL;
+	list->length = 0;
 }
 
 void StringListAdd(StringList* list, String str)
 {
-	if (list->length == 0)
-		list->items = (String*)malloc(++(list->length) * sizeof(String));
-	else
-		list->items = (String*)realloc(list->items, ++(list->length) * sizeof(String));
-	list->items[list->length - 1] = str;
+	if (list == NULL)
+	{
+		return;
+	}
+
+	String* result = (String*)realloc(list->items, (list->length + 1) * sizeof(String));
+	if (result == NULL)
+	{
+		return;
+	}
+
+	list->items = result;
+	list->items[list->length] = str;
+	list->length++;
 }
 
-void StringListPrint(StringList list, char delimeter)
+void StringListPrint(StringList list, char delimiter)
 {
-	for (int i = 0; i < list.length; i++)
+	for (size_t i = 0; i < list.length; i++)
 	{
 		printf("%s", list.items[i].symbols);
-		printf("%c", delimeter);
+		printf("%c", delimiter);
 	}
 }
 
-void StringListSet(StringList* list, String str, int index)
+void StringListSet(StringList* list, String str, size_t index)
 {
-	if (index >= 0 && index < list->length)
+	if (list != NULL && index < list->length)
 	{
 		StringDelete(list->items[index]);
 		list->items[index] = StringCopy(str.symbols);
 	}
 }
 
-void StringListDeleteAt(StringList* list, int index)
+void StringListDeleteAt(StringList* list, size_t index)
 {
-	if (index >= 0 && index < list->length)
+	if (list == NULL || index >= list->length)
 	{
-		for (int i = index; i < list->length - 1; i++)
-			StringListSet(list, list->items[i + 1], i);
-		StringDelete(list->items[list->length - 1]);
-		list->items = (String*)realloc(list->items, --(list->length) * sizeof(String));
+		return;
+	}
+
+	StringDelete(list->items[index]);
+	for (size_t i = index; i + 1 < list->length; i++)
+	{
+		list->items[i] = list->items[i + 1];
+	}
+
+	list->length--;
+	if (list->length == 0)
+	{
+		free(list->items);
+		list->items = NULL;
+		return;
+	}
+
+	String* result = (String*)realloc(list->items, list->length * sizeof(String));
+	if (result != NULL)
+	{
+		list->items = result;
 	}
 }
 
-void StringListSort(StringList* list, bool flag)
+void StringListSort(StringList* list, bool isAscending)
 {
-#pragma region oldvariant
-
-	// int help = 1;
-	// for (int i = 0; i < list->length - help; i++)
-	// {
-	//     if (list->items[i].length > list->items[i + 1].length)
-	//     {
-	//         String str = StringCopy(list->items[i].symbols);
-	//         list->items[i] = StringCopy(list->items[i + 1].symbols);
-	//         list->items[i + 1] = StringCopy(str.symbols);
-	//         StringDelete(str);
-	//         PrintList(*list);
-	//         printf("\n");
-	//     }
-	//     if (i == list->length - help - 1)
-	//     {
-	//         i = 0;
-	//         help++;
-	//     }
-	// }
-#pragma endregion
-
-	for (int i = 0; i < list->length - 1; i++)
+	if (list == NULL)
 	{
-		for (int j = 0; j < list->length - i - 1; j++)
+		return;
+	}
+
+	for (size_t i = 0; i + 1 < list->length; i++)
+	{
+		for (size_t j = 0; j + 1 < list->length - i; j++)
 		{
-			int isChange = 0;
-			if (flag)
-				isChange = StringCompare(list->items[j], list->items[j + 1]);
-			else
-				isChange = StringCompare(list->items[j + 1], list->items[j]);
-			if (isChange > 0)
+			int compareResult = isAscending
+				? StringCompare(list->items[j], list->items[j + 1])
+				: StringCompare(list->items[j + 1], list->items[j]);
+			if (compareResult > 0)
 			{
-				String str = StringCopy(list->items[j].symbols);
-				StringDelete(list->items[j]);
-				list->items[j] = StringCopy(list->items[j + 1].symbols);
-				StringDelete(list->items[j + 1]);
-				list->items[j + 1] = StringCopy(str.symbols);
-				StringDelete(str);
+				String buffer = list->items[j];
+				list->items[j] = list->items[j + 1];
+				list->items[j + 1] = buffer;
 			}
 		}
 	}
 }
 
-StringList SplitStirngToStringList(String str)
+StringList SplitStringToStringList(String str)
 {
-	// 123 456 678
 	StringList result = StringListInit();
 	String buffer = StringInit(0);
-	for (int i = 0; i < str.length; i++)
+
+	for (size_t i = 0; i < str.length; i++)
 	{
 		if (str.symbols[i] != ' ')
 		{
@@ -127,17 +139,19 @@ StringList SplitStirngToStringList(String str)
 			buffer = StringInit(0);
 		}
 	}
+
 	if (buffer.length != 0)
 	{
 		StringListAdd(&result, StringCopy(buffer.symbols));
-		StringDelete(buffer);
 	}
-	else
-	{
-		StringDelete(buffer);
-	}
+	StringDelete(buffer);
 
 	return result;
+}
+
+StringList SplitStirngToStringList(String str)
+{
+	return SplitStringToStringList(str);
 }
 
 #pragma endregion

@@ -1,24 +1,39 @@
 # Code Samples C
 
-Учебный набор базовых заготовок на C: строки, списки строк, матрицы, конвертация и простые примеры файлового ввода-вывода.
+RU: учебный набор базовых заготовок на C: строки, списки строк, матрицы, конвертация и простые примеры файлового ввода-вывода.
 
-## Сборка
+EN: a learning-oriented C sample collection with strings, string lists, matrices, conversion helpers, and simple file I/O examples.
+
+## Проверка / Verification
 
 Основной сценарий рассчитан на последнюю установленную Visual Studio/MSBuild. В текущей рабочей среде используется Visual Studio 18 / MSBuild из:
+
+The default workflow uses the latest installed Visual Studio/MSBuild. In the current environment that is Visual Studio 18 / MSBuild from:
 
 ```powershell
 C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\amd64\MSBuild.exe
 ```
 
-Полная проверка:
+Полная проверка / full verification:
 
 ```powershell
 .\scripts\test.ps1
 ```
 
-Скрипт находит latest Visual Studio через `vswhere` и собирает решение в конфигурации `Debug|x64`.
+Скрипт находит latest Visual Studio через `vswhere`, собирает решение в конфигурации `Debug|x64` и запускает получившийся exe с демонстрационными self-checks.
+
+The script resolves the latest Visual Studio through `vswhere`, builds `Debug|x64`, and runs the produced executable with demo self-checks.
+
+## Состав / Contents
+
+- `String.h`, `StringList.h`, `StrHelper.h`: базовые операции со строками и списками строк.
+- `MatrixInt.h`: матрицы `int`, транспонирование и умножение.
+- `Converter.h`: простые heap-строки из числовых значений.
+- `FileIO.h`: примеры текстового и бинарного ввода-вывода на локальных файлах.
+- `Code samples C.c`: демонстрационная точка входа и простые self-checks.
 
 ## GitHub
 
-Целевое имя репозитория: `c-code-samples`.
-Topics: `c`, `type-sample`, `learning`.
+Целевое имя репозитория / target repository name: `c-code-samples`.
+
+Topics: `c`, `type-sample`, `learning`, `status-active`.

@@ -1,7 +1,7 @@
 #pragma once
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
 #include <string.h>
 
 #pragma region Type String
@@ -12,11 +12,11 @@ typedef struct
 	size_t length;
 } String;
 
-String StringInit(size_t length)
+String StringInit(size_t capacity)
 {
 	String result;
-	result.symbols = (char*)calloc(length, sizeof(char));
-	result.length = length;
+	result.symbols = (char*)calloc(capacity + 1, sizeof(char));
+	result.length = 0;
 	return result;
 }
 
@@ -25,108 +25,108 @@ void StringDelete(String str)
 	free(str.symbols);
 }
 
-int StringGetLength(char* str)
+size_t StringGetLength(const char* str)
 {
-	if (str == NULL)
-		return 0;
-	int length = 0;
-	for (int i = 0;; i++)
-	{
-		if (str[i] == '\0')
-			break;
-		length++;
-	}
-	return length;
+	return str == NULL ? 0 : strlen(str);
 }
 
-String StringCopy(char* str)
+String StringCopy(const char* str)
 {
-	String result;
-	result.length = StringGetLength(str);
-	result.symbols = (char*)calloc(result.length + 1, sizeof(char));
-	for (int i = 0; i < result.length; i++)
+	String result = StringInit(StringGetLength(str));
+	if (str != NULL && result.symbols != NULL)
 	{
-		result.symbols[i] = str[i];
+		result.length = strlen(str);
+		memcpy(result.symbols, str, result.length + 1);
 	}
 	return result;
 }
 
-String StringFromBoolean(bool b) {
-	return b == true ? StringCopy("true") : StringCopy("false");
+String StringFromBoolean(bool value)
+{
+	return value ? StringCopy("true") : StringCopy("false");
 }
 
 int StringCompare(String str1, String str2)
 {
-	if (str1.length > str2.length)
+	int compareResult = strcmp(str1.symbols == NULL ? "" : str1.symbols, str2.symbols == NULL ? "" : str2.symbols);
+	if (compareResult > 0)
 	{
 		return 1;
 	}
-	else if (str1.length < str2.length)
+	if (compareResult < 0)
 	{
 		return -1;
 	}
-	else
-	{
-		for (int i = 0; i < str1.length; i++)
-		{
-			if (str1.symbols[i] > str2.symbols[i])
-			{
-				return 1;
-			}
-			else if (str1.symbols[i] < str2.symbols[i])
-			{
-				return -1;
-			}
-		}
-		return 0;
-	}
+	return 0;
 }
 
 void StringAdd(String* str, char c)
 {
-	if (str->length == 0)
+	if (str == NULL)
 	{
-		StringDelete(*str);
-		str->symbols = (char*)calloc(2, sizeof(char));
-		str->length += 2;
+		return;
 	}
-	else
+
+	char* result = (char*)realloc(str->symbols, (str->length + 2) * sizeof(char));
+	if (result == NULL)
 	{
-		str->symbols = (char*)realloc(str->symbols, (++(str->length)) * sizeof(char));
+		return;
 	}
-	str->symbols[str->length - 2] = c;
-	str->symbols[str->length - 1] = '\0';
+
+	str->symbols = result;
+	str->symbols[str->length] = c;
+	str->length++;
+	str->symbols[str->length] = '\0';
 }
 
-int StringGetCharIndex(char* str, char c) {
-	if (str != NULL) {
+int StringGetCharIndex(const char* str, char c)
+{
+	if (str != NULL)
+	{
 		for (size_t i = 0; i < strlen(str); i++)
+		{
 			if (str[i] == c)
-				return i;
+			{
+				return (int)i;
+			}
+		}
 	}
 	return -1;
 }
 
-bool IsStringSimpleContains(char* str, char c) {
+bool IsStringSimpleContains(const char* str, char c)
+{
 	if (str == NULL)
+	{
 		return false;
+	}
+
 	for (size_t i = 0; i < strlen(str); i++)
 	{
 		if (str[i] == c)
+		{
 			return true;
+		}
 	}
 	return false;
 }
 
-bool IsStringContains(String* str, char c) {
+bool IsStringContains(const String* str, char c)
+{
 	if (str == NULL)
+	{
 		return false;
+	}
 	return IsStringSimpleContains(str->symbols, c);
 }
 
-bool StringIsNumber(String* str) {
-	if (str == NULL)
+bool StringIsNumber(const String* str)
+{
+	if (str == NULL || str->symbols == NULL || str->length == 0)
+	{
 		return false;
+	}
+
 	const char* signs = "+-";
 	const char* digits = "1234567890";
 	const char* delimiters = ".,";
@@ -134,50 +134,49 @@ bool StringIsNumber(String* str) {
 	int delimitersCount = 0;
 	int signsCount = 0;
 	int digitCount = 0;
-	for (size_t i = 0; i < StringGetLength(str->symbols); i++)
+
+	for (size_t i = 0; i < str->length; i++)
 	{
 		char currentChar = str->symbols[i];
-#pragma region Знаки
+
 		if (IsStringSimpleContains(signs, currentChar))
 		{
 			signsCount++;
-			if (i != 0)
+			if (i != 0 || digitCount > 0 || signsCount > 1)
+			{
 				return false;
-			if (digitCount > 0)
-				return false;
-			if (signsCount > 1)
-				return false;
+			}
 		}
-#pragma endregion
 
-#pragma region Разделители
 		if (IsStringSimpleContains(delimiters, currentChar))
 		{
 			delimitersCount++;
-			if (delimitersCount > 1)
+			if (delimitersCount > 1 || i == 0 || digitCount < 1 || i == str->length - 1)
+			{
 				return false;
-			if (i == 0)
-				return false;
-			if (digitCount < 1)
-				return false;
-			if (i == StringGetLength(str->symbols) - 1)
-				return false;
+			}
 		}
-#pragma endregion
 
-#pragma region Цифры
-		if (currentChar == '0' && digitCount == 0)
+		if (currentChar == '0' && digitCount == 0 && str->length > 1)
+		{
 			return false;
-		if (IsStringSimpleContains(digits, str->symbols[i])) {
+		}
+		if (IsStringSimpleContains(digits, currentChar))
+		{
 			digitCount++;
 		}
-#pragma endregion
 
-		if (!IsStringSimpleContains(alphabet, str->symbols[i]))
+		if (!IsStringSimpleContains(alphabet, currentChar))
+		{
 			return false;
+		}
 	}
+
 	if ((signsCount > 0 || delimitersCount > 0) && digitCount == 0)
+	{
 		return false;
+	}
+
 	return true;
 }
 
