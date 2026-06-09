@@ -1,0 +1,43 @@
+# Visual Studio user state
+.vs/
+*.user
+*.suo
+
+# Build outputs
+[Bb]uild/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+Win32/
+**/x64/
+**/x86/
+**/Win32/
+**/[Dd]ebug/
+**/[Rr]elease/
+
+# C/C++ intermediate files
+*.obj
+*.iobj
+*.ipdb
+*.pdb
+*.idb
+*.ilk
+*.pch
+*.ipch
+*.tlog
+*.lastbuildstate
+*.recipe
+*.log
+
+# Binaries and libraries
+*.exe
+*.dll
+*.lib
+*.exp
+
+# Local preservation and OS noise
+codex-preservation/
+Thumbs.db
+Desktop.ini
+desktop.ini

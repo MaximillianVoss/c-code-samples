@@ -1,0 +1,60 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Исходные файлы">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Файлы заголовков">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Файлы ресурсов">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Файлы заголовков\Классы">
+      <UniqueIdentifier>{69a7c800-b504-4c03-9917-4eca89f7fd1d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Файлы заголовков\Классы\Строки">
+      <UniqueIdentifier>{63fbb334-1d55-4100-9011-b7ab9fb1afcf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Файлы заголовков\Классы\Матрицы">
+      <UniqueIdentifier>{4121fd1e-737b-4ec6-a198-727d4f17637d}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="stdafx.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="FileIO.h">
+      <Filter>Файлы заголовков\Классы</Filter>
+    </ClInclude>
+    <ClInclude Include="Converter.h">
+      <Filter>Файлы заголовков\Классы</Filter>
+    </ClInclude>
+    <ClInclude Include="String.h">
+      <Filter>Файлы заголовков\Классы\Строки</Filter>
+    </ClInclude>
+    <ClInclude Include="StringList.h">
+      <Filter>Файлы заголовков\Классы\Строки</Filter>
+    </ClInclude>
+    <ClInclude Include="StrHelper.h">
+      <Filter>Файлы заголовков\Классы\Строки</Filter>
+    </ClInclude>
+    <ClInclude Include="MatrixInt.h">
+      <Filter>Файлы заголовков\Классы\Матрицы</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="Code samples C.c">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
