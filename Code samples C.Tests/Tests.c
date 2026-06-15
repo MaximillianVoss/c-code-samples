@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "../Code samples C/Converter.h"
+#include "../Code samples C/FileIO.h"
 #include "../Code samples C/MatrixInt.h"
 #include "../Code samples C/StrHelper.h"
 #include "../Code samples C/String.h"
@@ -66,8 +67,8 @@ static void TestStringCopyAndAppend(void)
 
 static void TestStringIsNumber(void)
 {
-	const char* valid[] = { "123", "+123", "-123", "1.5", "1,5" };
-	const char* invalid[] = { "", "0123", "abc", "1.2.3", "12+3", "+.", "-" };
+	const char* valid[] = { "0", "123", "+123", "-123", "1.5", "0.5", "-0,5" };
+	const char* invalid[] = { "", "0123", "00.5", "abc", "1.2.3", "12+3", "+.", "-" };
 
 	for (size_t i = 0; i < sizeof(valid) / sizeof(valid[0]); i++)
 	{
@@ -195,7 +196,7 @@ static void TestMatrixMultiply(void)
 		}
 	}
 
-	MatrixInt result = MatrixIntMultiply(a, b);
+	MatrixInt result = MatrixIntMultiply(&a, &b);
 
 	ASSERT_SIZE(2, result.rowsCount);
 	ASSERT_SIZE(2, result.columnsCount);
@@ -209,6 +210,49 @@ static void TestMatrixMultiply(void)
 	MatrixIntDelete(&a);
 }
 
+static void TestMatrixMultiplyIncompatibleDimensionsReturnsEmpty(void)
+{
+	MatrixInt a = MatrixIntInit(2, 2);
+	MatrixInt b = MatrixIntInit(3, 2);
+
+	MatrixInt result = MatrixIntMultiply(&a, &b);
+
+	ASSERT_TRUE(MatrixIntIsEmpty(&result));
+
+	MatrixIntDelete(&result);
+	MatrixIntDelete(&b);
+	MatrixIntDelete(&a);
+}
+
+static void TestFileHelpersUseProvidedPaths(void)
+{
+	const char* textPath = "unit-test-program.txt";
+	const char* binaryPath = "unit-test-program.bin";
+
+	ASSERT_INT(0, FileWriteInt(textPath, 42));
+
+	int value = 0;
+	ASSERT_INT(0, FileReadInt(textPath, &value));
+	ASSERT_INT(42, value);
+
+	ThreeNum values[2] = {
+		{ 1, 5, 6 },
+		{ 2, 10, 11 }
+	};
+	ThreeNum restored[2] = {
+		{ 0, 0, 0 },
+		{ 0, 0, 0 }
+	};
+
+	ASSERT_INT(0, FileWriteThreeNumArray(binaryPath, values, 2));
+	ASSERT_INT(0, FileReadThreeNumArray(binaryPath, restored, 2));
+	ASSERT_INT(1, restored[0].n1);
+	ASSERT_INT(11, restored[1].n3);
+
+	remove(textPath);
+	remove(binaryPath);
+}
+
 int main(void)
 {
 	TestStringCopyAndAppend();
@@ -218,6 +262,8 @@ int main(void)
 	TestStringHelpersAndConverters();
 	TestMatrixTranspose();
 	TestMatrixMultiply();
+	TestMatrixMultiplyIncompatibleDimensionsReturnsEmpty();
+	TestFileHelpersUseProvidedPaths();
 
 	if (failedAssertions == 0)
 	{

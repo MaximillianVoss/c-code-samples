@@ -126,7 +126,7 @@ void TestMatrixMultiply(void)
 	printf("B:\n");
 	MatrixIntPrint(&b);
 
-	MatrixInt c = MatrixIntMultiply(a, b);
+	MatrixInt c = MatrixIntMultiply(&a, &b);
 	printf("C = A x B:\n");
 	MatrixIntPrint(&c);
 

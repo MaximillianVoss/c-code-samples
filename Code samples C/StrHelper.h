@@ -1,10 +1,9 @@
 #pragma once
 #include "stdafx.h"
 
-char* StrAppendChar(char* str, char c);
-char* StrAppendStr(char* str1, const char* str2);
-
-char* StrAppendChar(char* str, char c)
+// Returns the possibly reallocated pointer. On allocation failure the original
+// pointer is returned unchanged, so ownership always stays with the caller.
+static char* StrAppendChar(char* str, char c)
 {
 	size_t length = str != NULL ? strlen(str) : 0;
 	char* result = (char*)realloc(str, (length + 2) * sizeof(char));
@@ -18,17 +17,21 @@ char* StrAppendChar(char* str, char c)
 	return result;
 }
 
-char* StrAppendStr(char* str1, const char* str2)
+static char* StrAppendStr(char* str1, const char* str2)
 {
-	if (str2 == NULL)
+	if (str2 == NULL || str2[0] == '\0')
 	{
 		return str1;
 	}
 
-	for (size_t i = 0; i < strlen(str2); i++)
+	size_t length1 = str1 != NULL ? strlen(str1) : 0;
+	size_t length2 = strlen(str2);
+	char* result = (char*)realloc(str1, (length1 + length2 + 1) * sizeof(char));
+	if (result == NULL)
 	{
-		str1 = StrAppendChar(str1, str2[i]);
+		return str1;
 	}
 
-	return str1;
+	memcpy(result + length1, str2, length2 + 1);
+	return result;
 }

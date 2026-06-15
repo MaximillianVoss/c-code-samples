@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#pragma region Матрица
+#pragma region Matrix
 
 typedef struct
 {
@@ -12,15 +12,15 @@ typedef struct
 	int* items;
 } ArrayInt;
 
-ArrayInt ArrayIntInit(size_t length)
+static ArrayInt ArrayIntInit(size_t length)
 {
 	ArrayInt array;
 	array.items = (int*)calloc(length, sizeof(int));
-	array.length = length;
+	array.length = array.items == NULL && length > 0 ? 0 : length;
 	return array;
 }
 
-void ArrayIntDelete(ArrayInt* array)
+static void ArrayIntDelete(ArrayInt* array)
 {
 	if (array != NULL)
 	{
@@ -30,7 +30,9 @@ void ArrayIntDelete(ArrayInt* array)
 	}
 }
 
-void ArrayIntAdd(ArrayInt* array, int value)
+// Appends value if memory can be expanded. On allocation failure the array is
+// left unchanged.
+static void ArrayIntAdd(ArrayInt* array, int value)
 {
 	if (array == NULL)
 	{
@@ -48,20 +50,30 @@ void ArrayIntAdd(ArrayInt* array, int value)
 	array->length++;
 }
 
-int* ArrayIntGet(ArrayInt* array, size_t index)
+static int* ArrayIntGet(ArrayInt* array, size_t index)
 {
-	if (array != NULL && index < array->length)
+	if (array != NULL && array->items != NULL && index < array->length)
 	{
 		return &array->items[index];
 	}
 	return NULL;
 }
 
-void ArrayIntSet(ArrayInt* array, size_t index, int value)
+static const int* ArrayIntGetConst(const ArrayInt* array, size_t index)
 {
-	if (array != NULL && index < array->length)
+	if (array != NULL && array->items != NULL && index < array->length)
 	{
-		array->items[index] = value;
+		return &array->items[index];
+	}
+	return NULL;
+}
+
+static void ArrayIntSet(ArrayInt* array, size_t index, int value)
+{
+	int* item = ArrayIntGet(array, index);
+	if (item != NULL)
+	{
+		*item = value;
 	}
 }
 
@@ -72,22 +84,51 @@ typedef struct
 	size_t columnsCount;
 } MatrixInt;
 
-MatrixInt MatrixIntInit(size_t rowsCount, size_t columnsCount)
+static MatrixInt MatrixIntEmpty(void)
 {
 	MatrixInt matrix;
+	matrix.rows = NULL;
+	matrix.rowsCount = 0;
+	matrix.columnsCount = 0;
+	return matrix;
+}
+
+// Creates a rowsCount x columnsCount matrix initialized with zeroes.
+// If any allocation fails, returns an empty 0x0 matrix.
+static MatrixInt MatrixIntInit(size_t rowsCount, size_t columnsCount)
+{
+	MatrixInt matrix = MatrixIntEmpty();
+	if (rowsCount == 0 || columnsCount == 0)
+	{
+		return matrix;
+	}
+
 	matrix.rows = (ArrayInt*)calloc(rowsCount, sizeof(ArrayInt));
+	if (matrix.rows == NULL)
+	{
+		return MatrixIntEmpty();
+	}
+
 	matrix.rowsCount = rowsCount;
 	matrix.columnsCount = columnsCount;
-
 	for (size_t i = 0; i < rowsCount; i++)
 	{
 		matrix.rows[i] = ArrayIntInit(columnsCount);
+		if (matrix.rows[i].length != columnsCount)
+		{
+			for (size_t j = 0; j <= i; j++)
+			{
+				ArrayIntDelete(&matrix.rows[j]);
+			}
+			free(matrix.rows);
+			return MatrixIntEmpty();
+		}
 	}
 
 	return matrix;
 }
 
-void MatrixIntDelete(MatrixInt* matrix)
+static void MatrixIntDelete(MatrixInt* matrix)
 {
 	if (matrix != NULL)
 	{
@@ -96,32 +137,45 @@ void MatrixIntDelete(MatrixInt* matrix)
 			ArrayIntDelete(&matrix->rows[i]);
 		}
 		free(matrix->rows);
-		matrix->rows = NULL;
-		matrix->rowsCount = 0;
-		matrix->columnsCount = 0;
+		*matrix = MatrixIntEmpty();
 	}
 }
 
-int* MatrixIntGet(MatrixInt* matrix, size_t rowIndex, size_t columnIndex)
+static bool MatrixIntIsEmpty(const MatrixInt* matrix)
 {
-	if (matrix != NULL && rowIndex < matrix->rowsCount && columnIndex < matrix->columnsCount)
+	return matrix == NULL || matrix->rows == NULL || matrix->rowsCount == 0 || matrix->columnsCount == 0;
+}
+
+static int* MatrixIntGet(MatrixInt* matrix, size_t rowIndex, size_t columnIndex)
+{
+	if (!MatrixIntIsEmpty(matrix) && rowIndex < matrix->rowsCount && columnIndex < matrix->columnsCount)
 	{
 		return ArrayIntGet(&matrix->rows[rowIndex], columnIndex);
 	}
 	return NULL;
 }
 
-void MatrixIntSet(MatrixInt* matrix, size_t rowIndex, size_t columnIndex, int value)
+static const int* MatrixIntGetConst(const MatrixInt* matrix, size_t rowIndex, size_t columnIndex)
 {
-	if (matrix != NULL && rowIndex < matrix->rowsCount && columnIndex < matrix->columnsCount)
+	if (!MatrixIntIsEmpty(matrix) && rowIndex < matrix->rowsCount && columnIndex < matrix->columnsCount)
 	{
-		ArrayIntSet(&matrix->rows[rowIndex], columnIndex, value);
+		return ArrayIntGetConst(&matrix->rows[rowIndex], columnIndex);
+	}
+	return NULL;
+}
+
+static void MatrixIntSet(MatrixInt* matrix, size_t rowIndex, size_t columnIndex, int value)
+{
+	int* item = MatrixIntGet(matrix, rowIndex, columnIndex);
+	if (item != NULL)
+	{
+		*item = value;
 	}
 }
 
-void MatrixIntInitRandom(MatrixInt* matrix, int minValue, int maxValue)
+static void MatrixIntInitRandom(MatrixInt* matrix, int minValue, int maxValue)
 {
-	if (matrix == NULL || minValue > maxValue)
+	if (MatrixIntIsEmpty(matrix) || minValue > maxValue)
 	{
 		return;
 	}
@@ -136,17 +190,17 @@ void MatrixIntInitRandom(MatrixInt* matrix, int minValue, int maxValue)
 	}
 }
 
-MatrixInt MatrixIntTransponse(MatrixInt* matrix)
+static MatrixInt MatrixIntTransponse(const MatrixInt* matrix)
 {
-	MatrixInt result = MatrixIntInit(0, 0);
-	if (matrix != NULL)
+	MatrixInt result = MatrixIntEmpty();
+	if (!MatrixIntIsEmpty(matrix))
 	{
 		result = MatrixIntInit(matrix->columnsCount, matrix->rowsCount);
 		for (size_t i = 0; i < matrix->rowsCount; i++)
 		{
 			for (size_t j = 0; j < matrix->columnsCount; j++)
 			{
-				int* value = MatrixIntGet(matrix, i, j);
+				const int* value = MatrixIntGetConst(matrix, i, j);
 				if (value != NULL)
 				{
 					MatrixIntSet(&result, j, i, *value);
@@ -157,42 +211,45 @@ MatrixInt MatrixIntTransponse(MatrixInt* matrix)
 	return result;
 }
 
-MatrixInt MatrixIntMultiply(MatrixInt a, MatrixInt b)
+static MatrixInt MatrixIntMultiply(const MatrixInt* a, const MatrixInt* b)
 {
-	MatrixInt result = MatrixIntInit(0, 0);
-	if (a.columnsCount == b.rowsCount)
+	MatrixInt result = MatrixIntEmpty();
+	if (MatrixIntIsEmpty(a) || MatrixIntIsEmpty(b) || a->columnsCount != b->rowsCount)
 	{
-		result = MatrixIntInit(a.rowsCount, b.columnsCount);
-		for (size_t i = 0; i < result.rowsCount; i++)
+		return result;
+	}
+
+	result = MatrixIntInit(a->rowsCount, b->columnsCount);
+	for (size_t i = 0; i < result.rowsCount; i++)
+	{
+		for (size_t j = 0; j < result.columnsCount; j++)
 		{
-			for (size_t j = 0; j < result.columnsCount; j++)
+			int sum = 0;
+			for (size_t k = 0; k < a->columnsCount; k++)
 			{
-				int sum = 0;
-				for (size_t k = 0; k < a.columnsCount; k++)
+				const int* itemA = MatrixIntGetConst(a, i, k);
+				const int* itemB = MatrixIntGetConst(b, k, j);
+				if (itemA != NULL && itemB != NULL)
 				{
-					int* itemA = MatrixIntGet(&a, i, k);
-					int* itemB = MatrixIntGet(&b, k, j);
-					if (itemA != NULL && itemB != NULL)
-					{
-						sum += (*itemA) * (*itemB);
-					}
+					sum += (*itemA) * (*itemB);
 				}
-				MatrixIntSet(&result, i, j, sum);
 			}
+			MatrixIntSet(&result, i, j, sum);
 		}
 	}
+
 	return result;
 }
 
-void MatrixIntPrint(MatrixInt* matrix)
+static void MatrixIntPrint(const MatrixInt* matrix)
 {
-	if (matrix != NULL)
+	if (!MatrixIntIsEmpty(matrix))
 	{
 		for (size_t i = 0; i < matrix->rowsCount; i++)
 		{
 			for (size_t j = 0; j < matrix->columnsCount; j++)
 			{
-				int* value = MatrixIntGet(matrix, i, j);
+				const int* value = MatrixIntGetConst(matrix, i, j);
 				printf("%9i", value == NULL ? 0 : *value);
 			}
 			printf("\n");
@@ -200,7 +257,8 @@ void MatrixIntPrint(MatrixInt* matrix)
 	}
 }
 
-void MatrinxIntPrint(MatrixInt* matrix)
+// Kept for compatibility with the original misspelled sample function name.
+static void MatrinxIntPrint(const MatrixInt* matrix)
 {
 	MatrixIntPrint(matrix);
 }

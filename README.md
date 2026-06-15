@@ -29,9 +29,10 @@ The script resolves the latest Visual Studio through `vswhere`, builds `Debug|x6
 - `String.h`, `StringList.h`, `StrHelper.h`: базовые операции со строками и списками строк.
 - `MatrixInt.h`: матрицы `int`, транспонирование и умножение.
 - `Converter.h`: простые heap-строки из числовых значений.
-- `FileIO.h`: примеры текстового и бинарного ввода-вывода на локальных файлах.
+- `FileIO.h`: path-based примеры текстового и бинарного ввода-вывода на локальных файлах.
 - `Code samples C.c`: демонстрационная точка входа и простые self-checks.
 - `Code samples C.Tests`: отдельный console runner с unit-тестами для helper-заголовков.
+- `docs/refactoring-analysis.md`: краткий анализ найденных проблем и принятых решений.
 
 ## GitHub
 

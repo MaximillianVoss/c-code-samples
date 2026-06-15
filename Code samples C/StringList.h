@@ -9,7 +9,7 @@ typedef struct
 	size_t length;
 } StringList;
 
-StringList StringListInit()
+static StringList StringListInit(void)
 {
 	StringList list;
 	list.items = NULL;
@@ -17,7 +17,7 @@ StringList StringListInit()
 	return list;
 }
 
-void StringListDelete(StringList* list)
+static void StringListDelete(StringList* list)
 {
 	if (list == NULL)
 	{
@@ -33,25 +33,37 @@ void StringListDelete(StringList* list)
 	list->length = 0;
 }
 
-void StringListAdd(StringList* list, String str)
+// Takes ownership of str on success. On failure, str remains owned by caller.
+static bool StringListTryAdd(StringList* list, String str)
 {
 	if (list == NULL)
 	{
-		return;
+		return false;
 	}
 
 	String* result = (String*)realloc(list->items, (list->length + 1) * sizeof(String));
 	if (result == NULL)
 	{
-		return;
+		return false;
 	}
 
 	list->items = result;
 	list->items[list->length] = str;
 	list->length++;
+	return true;
 }
 
-void StringListPrint(StringList list, char delimiter)
+// Compatibility wrapper for the original void API. Because samples pass newly
+// allocated String values here, failed insertion frees str to avoid leaks.
+static void StringListAdd(StringList* list, String str)
+{
+	if (!StringListTryAdd(list, str))
+	{
+		StringDelete(str);
+	}
+}
+
+static void StringListPrint(StringList list, char delimiter)
 {
 	for (size_t i = 0; i < list.length; i++)
 	{
@@ -60,7 +72,7 @@ void StringListPrint(StringList list, char delimiter)
 	}
 }
 
-void StringListSet(StringList* list, String str, size_t index)
+static void StringListSet(StringList* list, String str, size_t index)
 {
 	if (list != NULL && index < list->length)
 	{
@@ -69,7 +81,7 @@ void StringListSet(StringList* list, String str, size_t index)
 	}
 }
 
-void StringListDeleteAt(StringList* list, size_t index)
+static void StringListDeleteAt(StringList* list, size_t index)
 {
 	if (list == NULL || index >= list->length)
 	{
@@ -97,7 +109,7 @@ void StringListDeleteAt(StringList* list, size_t index)
 	}
 }
 
-void StringListSort(StringList* list, bool isAscending)
+static void StringListSort(StringList* list, bool isAscending)
 {
 	if (list == NULL)
 	{
@@ -121,7 +133,7 @@ void StringListSort(StringList* list, bool isAscending)
 	}
 }
 
-StringList SplitStringToStringList(String str)
+static StringList SplitStringToStringList(String str)
 {
 	StringList result = StringListInit();
 	String buffer = StringInit(0);
@@ -149,7 +161,8 @@ StringList SplitStringToStringList(String str)
 	return result;
 }
 
-StringList SplitStirngToStringList(String str)
+// Kept for compatibility with the original misspelled sample function name.
+static StringList SplitStirngToStringList(String str)
 {
 	return SplitStringToStringList(str);
 }

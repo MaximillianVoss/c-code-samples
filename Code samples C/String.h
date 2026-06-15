@@ -12,7 +12,9 @@ typedef struct
 	size_t length;
 } String;
 
-String StringInit(size_t capacity)
+// Header-only sample API: functions are static to avoid duplicate symbols when
+// the same helper header is included from several .c files in one project.
+static String StringInit(size_t capacity)
 {
 	String result;
 	result.symbols = (char*)calloc(capacity + 1, sizeof(char));
@@ -20,17 +22,20 @@ String StringInit(size_t capacity)
 	return result;
 }
 
-void StringDelete(String str)
+// Frees owned storage. The value is passed by copy, so callers should not use
+// str.symbols after this call unless they reset their local String instance.
+static void StringDelete(String str)
 {
 	free(str.symbols);
 }
 
-size_t StringGetLength(const char* str)
+static size_t StringGetLength(const char* str)
 {
 	return str == NULL ? 0 : strlen(str);
 }
 
-String StringCopy(const char* str)
+// Creates an owning copy. On allocation failure returns { NULL, 0 }.
+static String StringCopy(const char* str)
 {
 	String result = StringInit(StringGetLength(str));
 	if (str != NULL && result.symbols != NULL)
@@ -41,12 +46,12 @@ String StringCopy(const char* str)
 	return result;
 }
 
-String StringFromBoolean(bool value)
+static String StringFromBoolean(bool value)
 {
 	return value ? StringCopy("true") : StringCopy("false");
 }
 
-int StringCompare(String str1, String str2)
+static int StringCompare(String str1, String str2)
 {
 	int compareResult = strcmp(str1.symbols == NULL ? "" : str1.symbols, str2.symbols == NULL ? "" : str2.symbols);
 	if (compareResult > 0)
@@ -60,7 +65,9 @@ int StringCompare(String str1, String str2)
 	return 0;
 }
 
-void StringAdd(String* str, char c)
+// Appends one byte character. If allocation fails, the original String remains
+// valid and unchanged.
+static void StringAdd(String* str, char c)
 {
 	if (str == NULL)
 	{
@@ -79,7 +86,7 @@ void StringAdd(String* str, char c)
 	str->symbols[str->length] = '\0';
 }
 
-int StringGetCharIndex(const char* str, char c)
+static int StringGetCharIndex(const char* str, char c)
 {
 	if (str != NULL)
 	{
@@ -94,7 +101,7 @@ int StringGetCharIndex(const char* str, char c)
 	return -1;
 }
 
-bool IsStringSimpleContains(const char* str, char c)
+static bool IsStringSimpleContains(const char* str, char c)
 {
 	if (str == NULL)
 	{
@@ -111,7 +118,7 @@ bool IsStringSimpleContains(const char* str, char c)
 	return false;
 }
 
-bool IsStringContains(const String* str, char c)
+static bool IsStringContains(const String* str, char c)
 {
 	if (str == NULL)
 	{
@@ -120,64 +127,72 @@ bool IsStringContains(const String* str, char c)
 	return IsStringSimpleContains(str->symbols, c);
 }
 
-bool StringIsNumber(const String* str)
+static bool StringIsDigit(char c)
+{
+	return c >= '0' && c <= '9';
+}
+
+// Accepts signed decimal numbers with optional '.' or ',' fractional separator.
+// Leading zeroes are rejected for multi-digit integer parts, but "0" and
+// fractions like "0.5" / "-0,5" are valid.
+static bool StringIsNumber(const String* str)
 {
 	if (str == NULL || str->symbols == NULL || str->length == 0)
 	{
 		return false;
 	}
 
-	const char* signs = "+-";
-	const char* digits = "1234567890";
-	const char* delimiters = ".,";
-	const char* alphabet = "+-.,1234567890";
-	int delimitersCount = 0;
-	int signsCount = 0;
-	int digitCount = 0;
-
-	for (size_t i = 0; i < str->length; i++)
+	size_t index = 0;
+	if (str->symbols[index] == '+' || str->symbols[index] == '-')
 	{
-		char currentChar = str->symbols[i];
-
-		if (IsStringSimpleContains(signs, currentChar))
-		{
-			signsCount++;
-			if (i != 0 || digitCount > 0 || signsCount > 1)
-			{
-				return false;
-			}
-		}
-
-		if (IsStringSimpleContains(delimiters, currentChar))
-		{
-			delimitersCount++;
-			if (delimitersCount > 1 || i == 0 || digitCount < 1 || i == str->length - 1)
-			{
-				return false;
-			}
-		}
-
-		if (currentChar == '0' && digitCount == 0 && str->length > 1)
-		{
-			return false;
-		}
-		if (IsStringSimpleContains(digits, currentChar))
-		{
-			digitCount++;
-		}
-
-		if (!IsStringSimpleContains(alphabet, currentChar))
+		index++;
+		if (index == str->length)
 		{
 			return false;
 		}
 	}
 
-	if ((signsCount > 0 || delimitersCount > 0) && digitCount == 0)
+	size_t integerStart = index;
+	size_t integerDigits = 0;
+	while (index < str->length && StringIsDigit(str->symbols[index]))
+	{
+		integerDigits++;
+		index++;
+	}
+
+	if (integerDigits == 0)
 	{
 		return false;
 	}
 
-	return true;
+	bool hasFraction = false;
+	if (index < str->length && (str->symbols[index] == '.' || str->symbols[index] == ','))
+	{
+		hasFraction = true;
+		index++;
+		size_t fractionDigits = 0;
+		while (index < str->length && StringIsDigit(str->symbols[index]))
+		{
+			fractionDigits++;
+			index++;
+		}
+		if (fractionDigits == 0)
+		{
+			return false;
+		}
+	}
+
+	if (index != str->length)
+	{
+		return false;
+	}
+
+	if (integerDigits > 1 && str->symbols[integerStart] == '0')
+	{
+		return false;
+	}
+
+	return integerDigits > 0 || hasFraction;
 }
 
 #pragma endregion

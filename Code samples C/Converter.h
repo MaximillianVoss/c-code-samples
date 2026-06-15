@@ -1,7 +1,9 @@
 #pragma once
 #include "stdafx.h"
 
-char* ConvertIntToStr(int value)
+// Conversion helpers return heap-allocated strings. Callers own the returned
+// pointer and must free it with free().
+static char* ConvertIntToStr(int value)
 {
 	int length = _scprintf("%d", value);
 	char* result = (char*)calloc((size_t)length + 1, sizeof(char));
@@ -12,7 +14,7 @@ char* ConvertIntToStr(int value)
 	return result;
 }
 
-char* ConvertFloatToStr(float value)
+static char* ConvertFloatToStr(float value)
 {
 	int length = _scprintf("%g", value);
 	char* result = (char*)calloc((size_t)length + 1, sizeof(char));
@@ -23,7 +25,7 @@ char* ConvertFloatToStr(float value)
 	return result;
 }
 
-char* ConvertDoubleToStr(double value)
+static char* ConvertDoubleToStr(double value)
 {
 	int length = _scprintf("%g", value);
 	char* result = (char*)calloc((size_t)length + 1, sizeof(char));
