@@ -36,6 +36,13 @@ Win32/
 *.lib
 *.exp
 
+# CMake and vcpkg output
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+CTestTestfile.cmake
+vcpkg_installed/
+
 # Local preservation and OS noise
 codex-preservation/
 Thumbs.db

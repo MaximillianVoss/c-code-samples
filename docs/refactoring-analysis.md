@@ -28,3 +28,20 @@ EN: this analysis covers the learning-oriented header-only C helpers: strings, s
 - Split header-only helpers into `.h` declarations and `.c` implementations if the project grows beyond a compact learning sample.
 - Add CI after the repository cleanup pass settles, using the same `scripts/test.ps1` entrypoint.
 - Rename legacy compatibility functions with typos in a breaking-change pass, after all old samples that may call them are checked.
+
+## Recovered PNG Image Tool
+
+The external folder `X:\Projects\BMPEditor` was a C/libpng PNG command-line
+project despite its BMP-oriented name. Its source-only baseline is preserved as
+the parentless branch `history/png-image-tool/original-snapshot` at `b780c74`.
+The private external-project archive retains all 33 files and their NTFS dates.
+
+The original implementation assumed every decoded row was packed RGB, defined
+non-static functions in headers, accepted partially parsed CLI values, omitted
+allocation checks, and relied on manual inspection of generated images. The
+maintained `Samples/png-image-tool` version separates pixel operations, CLI
+parsing, and libpng I/O; supports RGB/RGBA explicitly; validates bounds and
+integer ranges; and provides automated core and PNG round-trip tests.
+
+The current PNG layer preserves IHDR fields for supported 8-bit RGB/RGBA input.
+Preservation of ancillary chunks is intentionally documented as future work.

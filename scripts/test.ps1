@@ -45,6 +45,11 @@ try {
             throw "$executable failed with exit code $LASTEXITCODE."
         }
     }
+
+    & (Join-Path $root "Samples\png-image-tool\scripts\test.ps1") -CoreOnly
+    if ($LASTEXITCODE -ne 0) {
+        throw "PNG image tool core tests failed with exit code $LASTEXITCODE."
+    }
 }
 finally {
     Pop-Location
