@@ -1,0 +1,7 @@
+--посмотреть тут
+https://stackoverflow.com/questions/17676026/converting-c-to-nasm-assembly
+-- Должно превратить код на Си в код на ассемблере
+gcc -fno-asynchronous-unwind-tables -O2 -s -c -o main.o main.c
+./objconv -fnasm main.o
+--Альтернативный способ
+ndisasm -u <(objdump -j .text -d main.o | cut -d: -f2 | cut -d$'\t' -f 2 | perl -ne 'next if /file/; s/\s+//g; print' | xxd -r -p)
