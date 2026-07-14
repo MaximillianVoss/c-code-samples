@@ -14,6 +14,8 @@ The default workflow uses the latest installed Visual Studio/MSBuild. In the cur
 C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\amd64\MSBuild.exe
 ```
 
+Both native projects use the Visual Studio 2026 `v145` platform toolset and the latest installed Windows 10 SDK.
+
 Полная проверка / full verification:
 
 ```powershell
