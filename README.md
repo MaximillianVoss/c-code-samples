@@ -34,6 +34,7 @@ The script resolves the latest Visual Studio through `vswhere`, builds `Debug|x6
 - `FileIO.h`: path-based примеры текстового и бинарного ввода-вывода на локальных файлах.
 - `Code samples C.c`: демонстрационная точка входа и простые self-checks.
 - `Code samples C.Tests`: отдельный console runner с unit-тестами для helper-заголовков.
+- `Legacy/asm-c-binary-insertion-sort`: документированный пример вызова NASM-сортировки из C с сохраненным исходным снимком.
 - `docs/refactoring-analysis.md`: краткий анализ найденных проблем и принятых решений.
 
 ## GitHub
