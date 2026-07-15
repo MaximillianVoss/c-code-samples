@@ -50,6 +50,11 @@ try {
     if ($LASTEXITCODE -ne 0) {
         throw "PNG image tool core tests failed with exit code $LASTEXITCODE."
     }
+
+    & (Join-Path $root "Legacy\c-file-finder-plugin\scripts\test.ps1")
+    if ($LASTEXITCODE -ne 0) {
+        throw "FileFinder byte-frequency tests failed with exit code $LASTEXITCODE."
+    }
 }
 finally {
     Pop-Location
