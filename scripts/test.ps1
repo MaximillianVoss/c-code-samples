@@ -55,6 +55,11 @@ try {
     if ($LASTEXITCODE -ne 0) {
         throw "FileFinder byte-frequency tests failed with exit code $LASTEXITCODE."
     }
+
+    & (Join-Path $root "Legacy\c-array-exercises-2016\scripts\test.ps1")
+    if ($LASTEXITCODE -ne 0) {
+        throw "C array exercise tests failed with exit code $LASTEXITCODE."
+    }
 }
 finally {
     Pop-Location
