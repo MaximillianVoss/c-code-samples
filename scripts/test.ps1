@@ -60,6 +60,11 @@ try {
     if ($LASTEXITCODE -ne 0) {
         throw "C array exercise tests failed with exit code $LASTEXITCODE."
     }
+
+    & (Join-Path $root "Legacy\c-memory-pool-study-2016\scripts\test.ps1")
+    if ($LASTEXITCODE -ne 0) {
+        throw "C memory pool tests failed with exit code $LASTEXITCODE."
+    }
 }
 finally {
     Pop-Location

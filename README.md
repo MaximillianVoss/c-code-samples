@@ -37,6 +37,7 @@ The script resolves the latest Visual Studio through `vswhere`, builds `Debug|x6
 - `Legacy/asm-c-binary-insertion-sort`: документированный пример вызова NASM-сортировки из C с сохраненным исходным снимком.
 - `Legacy/c-file-finder-plugin`: восстановленная Linux-лабораторная динамических плагинов и переносимое протестированное ядро подсчета байтов.
 - `Legacy/c-array-exercises-2016`: две восстановленные лабораторные по динамическим массивам и матрицам с безопасным C17-ядром и тестами.
+- `Legacy/c-memory-pool-study-2016`: три исторические попытки написать allocator поверх буфера и безопасное C17-ядро с first-fit, split/coalesce и тестами.
 - `Samples/png-image-tool`: восстановленный и переработанный PNG CLI с libpng, CMake и автоматическими тестами.
 - `docs/refactoring-analysis.md`: краткий анализ найденных проблем и принятых решений.
 
