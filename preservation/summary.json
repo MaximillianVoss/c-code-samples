@@ -1,0 +1,15 @@
+{
+  "generatedAtUtc": "2026-07-15T22:52:10.9309669Z",
+  "originalProjects": [
+    "C++\\Код C++\\MemoryManager",
+    "C++\\Код C++\\MemoryManagerC++",
+    "C++\\Код C++\\MemoryManagerRC"
+  ],
+  "sourceRecords": 73,
+  "sourceBytes": 43391551,
+  "includedFiles": 19,
+  "includedBytes": 46940,
+  "metadataOnlyFiles": 54,
+  "archiveRepository": "MaximillianVoss/legacy-native-projects-archive",
+  "archiveHead": "54a7410ae04822b5e609059ecaf0f4d56f729b8c"
+}
